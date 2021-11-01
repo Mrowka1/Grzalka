@@ -15,7 +15,7 @@ namespace Grzalka
 
         static byte CurPhase = 0;
 
-       
+
         static GpioController ctrl;
         static ModbusClient modbus;
         static bool Started;
@@ -23,6 +23,9 @@ namespace Grzalka
         static void Main(string[] args)
         {
             ctrl = new GpioController(PinNumberingScheme.Board);
+
+            TurnHeater1Phase(0);
+
             modbus = new ModbusClient(args[1]);
             modbus.ConnectedChanged += Modbus_ConnectedChanged;
             modbus.Parity = System.IO.Ports.Parity.None;
@@ -30,7 +33,6 @@ namespace Grzalka
             modbus.UnitIdentifier = 20;
             modbus.ConnectionTimeout = 1000;
             modbus.Connect();
-
 
         }
 
@@ -56,21 +58,21 @@ namespace Grzalka
                         double MidValue = Voltages[1];
                         double LowValue = Voltages[0];
 
-                        if (VolA > 230 & VolA > LowValue + 10 & VolA>MidValue)
+                        if (VolA > 230 & VolA > LowValue + 10 & VolA > MidValue)
                         {
-                      TurnHeater1Phase(1);
+                            TurnHeater1Phase(1);
                         }
                         else if (VolB > 230 & VolB > LowValue + 10 & VolB > MidValue)
                         {
-                          TurnHeater1Phase(2);
+                            TurnHeater1Phase(2);
                         }
                         else if (VolC > 230 & VolC > LowValue + 10 & VolC > MidValue)
                         {
-                          TurnHeater1Phase(3);
+                            TurnHeater1Phase(3);
                         }
                         else
                         {
-                        TurnHeater1Phase(0);
+                            TurnHeater1Phase(0);
                         }
 
                         //   
@@ -111,7 +113,7 @@ namespace Grzalka
 
         static void TurnHeater1Phase(byte phase = 0)
         {
-          
+
             if (!ctrl.IsPinOpen(pinPhases1_2)) ctrl.OpenPin(pinPhases1_2);
             if (!ctrl.IsPinOpen(pinPhase3)) ctrl.OpenPin(pinPhase3);
             if (!ctrl.IsPinOpen(pin_CommonPower)) ctrl.OpenPin(pin_CommonPower);
@@ -127,7 +129,7 @@ namespace Grzalka
 
                     break;
                 case 1:
-                    
+
                     ctrl.Write(pinPhases1_2, PinValue.High);
                     ctrl.Write(pinPhase3, PinValue.High);
                     ctrl.Write(pin_CommonPower, PinValue.Low);
