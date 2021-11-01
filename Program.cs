@@ -15,6 +15,8 @@ namespace Grzalka
 
         static byte CurPhase = 0;
 
+        static double MinimalVoltageDiffence = 5.0d;
+        static double MinimalVoltage = 230.0;
 
         static GpioController ctrl;
         static ModbusClient modbus;
@@ -58,15 +60,15 @@ namespace Grzalka
                         double MidValue = Voltages[1];
                         double LowValue = Voltages[0];
 
-                        if (VolA > 230 & VolA > LowValue + 10 & VolA > MidValue)
+                        if (VolA > MinimalVoltage & VolA > LowValue + MinimalVoltageDiffence & VolA > MidValue)
                         {
                             TurnHeater1Phase(1);
                         }
-                        else if (VolB > 230 & VolB > LowValue + 10 & VolB > MidValue)
+                        else if (VolB > MinimalVoltage & VolB > LowValue + MinimalVoltageDiffence & VolB > MidValue)
                         {
                             TurnHeater1Phase(2);
                         }
-                        else if (VolC > 230 & VolC > LowValue + 10 & VolC > MidValue)
+                        else if (VolC > MinimalVoltage & VolC > LowValue + MinimalVoltageDiffence & VolC > MidValue)
                         {
                             TurnHeater1Phase(3);
                         }
