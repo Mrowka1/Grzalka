@@ -5,11 +5,16 @@ namespace Grzalka
 {
     class Program
     {
-        static int pin_F1 = 26;
-        static int pin_F2 = 25;
-        static int pin_F3 = 24;
-        static int pin_Power = 23;
+
         static int[] PhasesPins = { 26, 25, 24 };
+
+        static int pinPhases1_2 = 26;
+        static int pinPhase3 = 25;
+        static int pin_CommonPower = 23;
+
+        static bool StatePhases1_2;
+        static bool StatePhase3;
+        static bool StateCommonPower;
 
         static GpioController ctrl;
         static ModbusClient modbus;
@@ -37,11 +42,24 @@ namespace Grzalka
             {
                 try
                 {
+                    int[] reg = modbus.ReadHoldingRegisters(0, 20);
+                    double pwr = reg[11] / 100.0d;
+                    if (pwr >= 1.5)
+                    {
+                        double VolA = reg[14] / 10.0;
+                        double VolB = reg[16] / 10.0;
+                        double VolC = reg[18] / 10.0;
 
+                        //   TurnHeater1Phase(0);
+                    }
+                    else
+                    {
+                        TurnHeater1Phase(0);
+                    }
                 }
                 catch
                 {
-
+                    TurnHeater1Phase(0);
                 }
                 System.Threading.Thread.Sleep(15000);
             }
@@ -50,11 +68,52 @@ namespace Grzalka
         }
 
 
-        void TurnHeater(bool On, byte phase = 0)
+        static void TurnHeater3Phases(bool On, byte phase = 0)
         {
             foreach (int pin in PhasesPins)
             {
+                if (!ctrl.IsPinOpen(pin))
+                {
+                    ctrl.OpenPin(pin, PinMode.Output);
+                    ctrl.Write(pin, PinValue.High);
+                }
+            }
+            if (On && phase != 0)
+            {
+                ctrl.Write(PhasesPins[phase - 1], PinValue.Low);
+            }
 
+        }
+
+
+        static void TurnHeater1Phase(byte phase = 0)
+        {
+            if (!ctrl.IsPinOpen(pinPhases1_2)) ctrl.OpenPin(pinPhases1_2);
+            if (!ctrl.IsPinOpen(pinPhase3)) ctrl.OpenPin(pinPhase3);
+            if (!ctrl.IsPinOpen(pin_CommonPower)) ctrl.OpenPin(pin_CommonPower);
+            switch (phase)
+            {
+                case 0:
+                    ctrl.Write(pin_CommonPower, PinValue.High);
+                    ctrl.Write(pinPhases1_2, PinValue.High);
+                    ctrl.Write(pinPhase3, PinValue.High);
+
+                    break;
+                case 1:
+                    ctrl.Write(pinPhases1_2, PinValue.High);
+                    ctrl.Write(pinPhase3, PinValue.High);
+                    ctrl.Write(pin_CommonPower, PinValue.Low);
+                    break;
+                case 2:
+                    ctrl.Write(pinPhases1_2, PinValue.Low);
+                    ctrl.Write(pinPhase3, PinValue.High);
+                    ctrl.Write(pin_CommonPower, PinValue.Low);
+                    break;
+                case 3:
+                    ctrl.Write(pinPhases1_2, PinValue.High);
+                    ctrl.Write(pinPhase3, PinValue.Low);
+                    ctrl.Write(pin_CommonPower, PinValue.Low);
+                    break;
             }
         }
 
