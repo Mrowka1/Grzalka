@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Device.Gpio;
 using EasyModbus;
 namespace Grzalka
@@ -43,14 +44,37 @@ namespace Grzalka
                 try
                 {
                     int[] reg = modbus.ReadHoldingRegisters(0, 20);
-                    double pwr = reg[11] / 100.0d;
+                    double pwr = (double)reg[11] / 100.0d;
                     if (pwr >= 1.5)
                     {
-                        double VolA = reg[14] / 10.0;
-                        double VolB = reg[16] / 10.0;
-                        double VolC = reg[18] / 10.0;
 
-                        //   TurnHeater1Phase(0);
+                        double VolA = (double)reg[14] / 10.0;
+                        double VolB = (double)reg[16] / 10.0;
+                        double VolC = (double)reg[18] / 10.0;
+
+                        double[] Voltages = { VolA, VolB, VolC };
+                        Array.Sort(Voltages);
+                        double MidValue = Voltages[1];
+                        double LowValue = Voltages[0];
+
+                        if (VolA > 230 & VolA > LowValue + 10 & VolA>MidValue)
+                        {
+                            TurnHeater1Phase(1);
+                        }
+                        else if (VolB > 230 & VolB > LowValue + 10 & VolB > MidValue)
+                        {
+                            TurnHeater1Phase(2);
+                        }
+                        else if (VolC > 230 & VolC > LowValue + 10 & VolC > MidValue)
+                        {
+                            TurnHeater1Phase(3);
+                        }
+                        else
+                        {
+                            TurnHeater1Phase(0);
+                        }
+
+                        //   
                     }
                     else
                     {
