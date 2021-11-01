@@ -13,10 +13,9 @@ namespace Grzalka
         static int pinPhase3 = 25;
         static int pin_CommonPower = 23;
 
-        static bool StatePhases1_2;
-        static bool StatePhase3;
-        static bool StateCommonPower;
+        static byte CurPhase = 0;
 
+       
         static GpioController ctrl;
         static ModbusClient modbus;
         static bool Started;
@@ -59,19 +58,19 @@ namespace Grzalka
 
                         if (VolA > 230 & VolA > LowValue + 10 & VolA>MidValue)
                         {
-                            TurnHeater1Phase(1);
+                      TurnHeater1Phase(1);
                         }
                         else if (VolB > 230 & VolB > LowValue + 10 & VolB > MidValue)
                         {
-                            TurnHeater1Phase(2);
+                          TurnHeater1Phase(2);
                         }
                         else if (VolC > 230 & VolC > LowValue + 10 & VolC > MidValue)
                         {
-                            TurnHeater1Phase(3);
+                          TurnHeater1Phase(3);
                         }
                         else
                         {
-                            TurnHeater1Phase(0);
+                        TurnHeater1Phase(0);
                         }
 
                         //   
@@ -112,9 +111,13 @@ namespace Grzalka
 
         static void TurnHeater1Phase(byte phase = 0)
         {
+          
             if (!ctrl.IsPinOpen(pinPhases1_2)) ctrl.OpenPin(pinPhases1_2);
             if (!ctrl.IsPinOpen(pinPhase3)) ctrl.OpenPin(pinPhase3);
             if (!ctrl.IsPinOpen(pin_CommonPower)) ctrl.OpenPin(pin_CommonPower);
+
+            if (phase != 0 && phase == CurPhase) return;
+            CurPhase = phase;
             switch (phase)
             {
                 case 0:
@@ -124,6 +127,7 @@ namespace Grzalka
 
                     break;
                 case 1:
+                    
                     ctrl.Write(pinPhases1_2, PinValue.High);
                     ctrl.Write(pinPhase3, PinValue.High);
                     ctrl.Write(pin_CommonPower, PinValue.Low);
